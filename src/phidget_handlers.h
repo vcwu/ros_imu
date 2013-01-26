@@ -6,7 +6,7 @@
 
 //Mutex, used with event handler in setting up the shared std::deque
 pthread_mutex_t mutex;
-
+pthread_cond_t cond;
 //callback that will run if the Spatial is attached to the computer
 int CCONV AttachHandler(CPhidgetHandle spatial, void *userptr)
 {
@@ -60,8 +60,6 @@ int display_properties(CPhidgetHandle phid)
 	printf("Number of Gyro Axes: %i\n", numGyroAxes);
 	printf("Number of Compass Axes: %i\n", numCompassAxes);
 	printf("datarate> Max: %d  Min: %d\n", dataRateMax, dataRateMin);
-
-	return 0;
 }
 
 //callback that will run at datarate
@@ -69,27 +67,29 @@ int display_properties(CPhidgetHandle phid)
 //count - the number of spatial data event packets included in this event
 int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhidgetSpatial_SpatialEventDataHandle *data, int count)
 {
-	//event++;
-
-	//cout << "DATA HANDLER " << endl;
 	//Making copy of data.
 	//--------------------
 
 	CPhidgetSpatial_SpatialEventData* dataHolder = (CPhidgetSpatial_SpatialEventData*)malloc(sizeof(CPhidgetSpatial_SpatialEventData));
 
 	dataHolder = spatial::copy(*data[0]);
-
+//	spatial::print(*dataHolder);
 
 	//Pushing data to user given vector.
 	//---------------------
 	std::deque<CPhidgetSpatial_SpatialEventData>* buffer = (std::deque<CPhidgetSpatial_SpatialEventData>*) userptr;
 	
 
-
+	
 	//Get rid of oldest data, push in new one.
 	pthread_mutex_lock(&mutex);
 	buffer->push_back(*dataHolder);
+//	printf("Pushing into dataQueue\n");
+//	spatial::print(buffer->back());
 	//buffer->pop_front();
+	
+	//does this need to be in an if???
+	pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutex);
 
 	return 0;

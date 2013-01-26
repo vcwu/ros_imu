@@ -1,9 +1,9 @@
 #include "ros/ros.h"
-#include "std_msgs/String.h"
+#include <IMU/spatialRaw.h>
 using namespace ros;
-void chatterCallback(const std_msgs::String::ConstPtr& msg)
+void chatterCallback(const IMU::spatialRaw & msg)
 {
-	ROS_INFO("I heard: [%s]", msg->data.c_str());
+	ROS_INFO("%f", msg.w_x);
 //  ROS_INFO("I got a message");
 }
 

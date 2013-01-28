@@ -3,7 +3,8 @@
 using namespace ros;
 void chatterCallback(const IMU::spatialRaw & msg)
 {
-	ROS_INFO("%f", msg.w_x);
+	ROS_INFO("Time %ds %dns", msg.timestamp.sec, msg.timestamp.nsec);
+	ROS_INFO("Gyr X:%f Y:%f Z:%f", msg.w_x, msg.w_y, msg.w_z);	
 //  ROS_INFO("I got a message");
 }
 

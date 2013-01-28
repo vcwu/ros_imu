@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <IMU/spatialRaw.h>
-#include "spatial_helper.h"
+#include "phidget_headers/spatial_helper.h"
 #include "config.h"
 extern pthread_mutex_t mutex; 	//used when handling data q
 extern pthread_cond_t cond;		//used when handling data  q
@@ -31,7 +31,7 @@ void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, IMU::spatialRaw *msg)
 }
 
 void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDataQ* dataQueue, IMU::spatialRaw *msg)	{
-	ROS_INFO("Filling spatialMsg");
+	ROS_INFO("Filling up msg");
 	//Dealing with data Queue
 	pthread_mutex_lock(&mutex);
 
@@ -40,9 +40,8 @@ void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDa
 	if(dataQueue->empty())	{
 		pthread_cond_wait(&cond, &mutex);
 	}
-	 
+	ROS_INFO("Not empty!"); 
 	
-	ROS_INFO("DataQ not empty!");
 	it = dataQueue->begin();
 	copySpatialRaw(it, msg);
 	dataQueue->pop_front();
@@ -59,6 +58,7 @@ int main(int argc, char* argv[]){
   	ros::Publisher PhidgetPub = 
     	PhidgetNode.advertise<IMU::spatialRaw>("IMU_data", ROSbufferSize);
   	ros::Rate loop_rate(10);
+
 	
 	//Creating/Initializing Spatial Handle
 	//------------------------------------
@@ -93,10 +93,8 @@ int main(int argc, char* argv[]){
 	//-------------------------------------
 	spatial::spatial_setup(spatial, dataQueue, DATA_RATE);
 
-while(1)	{
- // 	while(ros::ok()) {
+ 	while(ros::ok()) {
 		
-		ROS_INFO("Loop!");
 
 		//Filling up 
 		IMU::spatialRaw  msg;
@@ -105,11 +103,10 @@ while(1)	{
 
 		ROS_INFO("Time %ds %dns", msg.timestamp.sec, msg.timestamp.nsec);
 		ROS_INFO("Gyr X:%f Y:%f Z:%f", msg.w_x, msg.w_y, msg.w_z);	
-//		PhidgetPub.publish(msg);
+		PhidgetPub.publish(msg);
 	
 
     	ROScount++;
-		ROS_INFO("Going to sleep");
 //		loop_rate.sleep();
     	ros::spinOnce();
  	}

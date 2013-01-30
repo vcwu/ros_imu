@@ -1,6 +1,6 @@
 #include "spatial_helper.h"
 #include "phidget_handlers.h"
-#include "config.h"			//GYRO_OFFSET (bias)
+#include "../config.h"			//GYRO_OFFSET (bias)
 #include <stdlib.h>			//for malloc
 using namespace std;
 

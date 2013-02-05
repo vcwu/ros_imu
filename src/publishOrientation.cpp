@@ -21,17 +21,38 @@ bool callback(std_servs::Empty::Request&, std_srvs::Empty::Response& response)	{
 	return true;
 }*/
 
+#ifdef BERKTESTER
+BERKTESTER0 //includes needed for other BERKTESTSER code
+#endif
+
 bool berk(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response)
 {
-    //this is where the berk code goes
-	//Raw IMU data is request.rawIMU.*
-	// output is response.* <--these may stil need to be set in the srv file
-	return true
+  //this is where the berk code goes
+  //Raw IMU data is request.rawIMU.*
+  // output is response.* <--these may stil need to be set in the srv file
+
+
+  double orientation[3], rotMatrix[3][3]; 
+  orientation[0] = deg_from_rad(imuFilter.getRoll());
+  orientation[1] = deg_from_rad(imuFilter.getPitch());
+  orientation[2] = deg_from_rad(imuFilter.getYaw());
+  imufilter.getRotationMatrix(rotMatrix);
+
+#ifdef BERKTESTER
+BERKTESTER2//print out any statements
+#endif
+
+  return true
 }
 
 int main(int argc, char* argv[])
 {
-//	IMUfilter imuFilter(milliToSeconds(DATA_RATE), gyroscopeErrorRate);
+
+#ifdef BERKTESTER
+BERKTESTER1 //define filestreams
+#endif //ifdef BERKTESTER
+
+	IMUfilter imuFilter(second_from_ms(DATA_RATE), gyroscopeErrorRate);
 	
 	ros::init(argc, argv, "Calculate_Orientation");
 	ros::NodeHandle berk;

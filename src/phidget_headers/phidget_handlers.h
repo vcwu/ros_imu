@@ -92,6 +92,9 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
 	pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutex);
 
+	//Freeing up memory of dataholder
+	//free(dataHolder);
+
 	return 0;
 }
 

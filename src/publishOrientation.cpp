@@ -33,10 +33,10 @@ bool berk(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response
 
 
   double orientation[3], rotMatrix[3][3]; 
-  orientation[0] = deg_from_rad(imuFilter.getRoll());
-  orientation[1] = deg_from_rad(imuFilter.getPitch());
-  orientation[2] = deg_from_rad(imuFilter.getYaw());
-  imufilter.getRotationMatrix(rotMatrix);
+  response.orientation[0] = deg_from_rad(imuFilter.getRoll());
+  response.orientation[1] = deg_from_rad(imuFilter.getPitch());
+  response.orientation[2] = deg_from_rad(imuFilter.getYaw());
+  imufilter.getRotationMatrix(response.rotMatrix);
 
 #ifdef BERKTESTER
 BERKTESTER2//print out any statements

@@ -51,6 +51,8 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+
+
 bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response)
 {
 	//Update filter with IMU data
@@ -61,15 +63,19 @@ bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &res
 	imuFilter.updateFilter(raw.w_x, raw.w_y, raw.w_z,
 		raw.a_x, raw.a_y, raw.a_z);
 	imuFilter.computeEuler();
-  	double rotMatrix[3][3];
+  	double rotation[3][3];
 
 	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", imuFilter.getRoll(),
 		imuFilter.getPitch(), imuFilter.getYaw());
-  	response.roll = deg_from_rad(imuFilter.getRoll());
-  	response.pitch  = deg_from_rad(imuFilter.getPitch());
-  	response.yaw = deg_from_rad(imuFilter.getYaw());
-//  imufilter.getRotationMatrix(response.rotMatrix);
-
+  	response.orientation.roll = deg_from_rad(imuFilter.getRoll());
+  	response.orientation.pitch  = deg_from_rad(imuFilter.getPitch());
+  	response.orientation.yaw = deg_from_rad(imuFilter.getYaw());
+	imuFilter.getRotationMatrix(rotation);
+	for(int i =0; i<3; i++)	{
+		response.rot.row1[i] = rotation[0][i];
+		response.rot.row2[i] = rotation[1][i];
+		response.rot.row3[i] = rotation[2][i];
+	}
 #ifdef BERKTESTER
 //BERKTESTER2//print out any statements
 #endif

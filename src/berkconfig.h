@@ -19,7 +19,7 @@
 
 //end testmodes
 //define unit conversions
-#define deg_from_rad(X) ((x)* 57.2957795)
+#define deg_from_rad(X) ((X)* 57.2957795)
 #define seconds_from_ms(x) ((x)/1000.0)
 
 //define internal constants

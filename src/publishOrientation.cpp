@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 //BERKTESTER1 //define filestreams
 #endif //ifdef BERKTESTER
 
-//	IMUfilter imuFilter(second_from_ms(DATA_RATE), gyroscopeErrorRate);
+	IMUfilter imuFilter(seconds_from_ms(DATA_RATE), gyroscopeErrorRate);
 	
 	ros::init(argc, argv, "Calculate_Orientation_server");
 	ros::NodeHandle berk;

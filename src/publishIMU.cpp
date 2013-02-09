@@ -119,6 +119,7 @@ int main(int argc, char* argv[]){
 		else	{
 			ROS_ERROR("Failed to call service Calculate_orientation");
 		}
+		OrientationPub.publish(srv.response);
 
     	ROScount++;
 //		loop_rate.sleep();

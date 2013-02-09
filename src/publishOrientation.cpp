@@ -10,8 +10,9 @@
 
 #include "ros/ros.h"
 //Message Types
-#include <IMU/spatialRaw.h>
-#include <IMU/orientation.h>
+//#include <IMU/spatialRaw.h>
+//#include <IMU/orientation.h>
+#include <IMU/imu_filter.h>
 //Our headers
 #include "orientation_headers/imuFilter.h"
 #include "berkconfig.h" //for error rates, other constants ->should include config.h
@@ -22,42 +23,44 @@ bool callback(std_servs::Empty::Request&, std_srvs::Empty::Response& response)	{
 }*/
 
 #ifdef BERKTESTER
-BERKTESTER0 //includes needed for other BERKTESTSER code
+//BERKTESTER0 //includes needed for other BERKTESTSER code
 #endif
 
-bool berk(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response)
+bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response)
 {
   //this is where the berk code goes
   //Raw IMU data is request.rawIMU.*
   // output is response.* <--these may stil need to be set in the srv file
 
-
+/*
   double orientation[3], rotMatrix[3][3]; 
-  response.orientation[0] = deg_from_rad(imuFilter.getRoll());
-  response.orientation[1] = deg_from_rad(imuFilter.getPitch());
-  response.orientation[2] = deg_from_rad(imuFilter.getYaw());
-  imufilter.getRotationMatrix(response.rotMatrix);
+  response.roll = deg_from_rad(imuFilter.getRoll());
+  response.pitch  = deg_from_rad(imuFilter.getPitch());
+  response.yaw = deg_from_rad(imuFilter.getYaw());
+*/
+//  imufilter.getRotationMatrix(response.rotMatrix);
 
 #ifdef BERKTESTER
-BERKTESTER2//print out any statements
+//BERKTESTER2//print out any statements
 #endif
 
-  return true
+  return true;
 }
 
 int main(int argc, char* argv[])
 {
 
 #ifdef BERKTESTER
-BERKTESTER1 //define filestreams
+//BERKTESTER1 //define filestreams
 #endif //ifdef BERKTESTER
 
-	IMUfilter imuFilter(second_from_ms(DATA_RATE), gyroscopeErrorRate);
+//	IMUfilter imuFilter(second_from_ms(DATA_RATE), gyroscopeErrorRate);
 	
-	ros::init(argc, argv, "Calculate_Orientation");
+	ros::init(argc, argv, "Calculate_Orientation_server");
 	ros::NodeHandle berk;
 
-	ros::ServiceServer service = nh.advertiseService("Orientation", berk);
+	ros::ServiceServer service = berk.advertiseService("Calculate_Orientation", calculate);
+	ROS_INFO("Ready to calculate orientation.");
 	ros::spin();
 	return 0;
-}_
+}

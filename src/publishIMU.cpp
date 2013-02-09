@@ -2,6 +2,8 @@
 #include "std_msgs/String.h"
 #include <IMU/spatialRaw.h>
 #include "phidget_headers/spatial_helper.h"
+#include <IMU/orientation.h>
+#include <IMU/imu_filter.h>
 #include "config.h"
 extern pthread_mutex_t mutex; 	//used when handling data q
 extern pthread_cond_t cond;		//used when handling data  q
@@ -52,13 +54,16 @@ void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDa
 
 int main(int argc, char* argv[]){
 
+	//ROS Setup
+	//-------------------------------
   	int ROSbufferSize = 100, ROScount = 0;
+  	ros::Rate loop_rate(10);
  	ros::init(argc, argv, "Phidget_Stuff");
   	ros::NodeHandle PhidgetNode;
   	ros::Publisher PhidgetPub = 
     	PhidgetNode.advertise<IMU::spatialRaw>("IMU_data", ROSbufferSize);
-  	ros::Rate loop_rate(10);
-
+	ros::Publisher OrientationPub = PhidgetNode.advertise<IMU::orientation>("Orientation_data", ROSbufferSize);
+	ros::ServiceClient client = PhidgetNode.serviceClient<IMU::imu_filter>("Calculate_Orientation");
 	
 	//Creating/Initializing Spatial Handle
 	//------------------------------------
@@ -96,7 +101,7 @@ int main(int argc, char* argv[]){
  	while(ros::ok()) {
 		
 
-		//Filling up 
+		//Publishing raw IMU data
 		IMU::spatialRaw  msg;
 			
 		fillSpatialMsg(it, dataQueue, &msg);
@@ -105,6 +110,15 @@ int main(int argc, char* argv[]){
 		ROS_INFO("Gyr X:%f Y:%f Z:%f", msg.w_x, msg.w_y, msg.w_z);	
 		PhidgetPub.publish(msg);
 	
+		//Publishing orientation data
+		IMU::imu_filter srv;
+		srv.request.rawIMU = msg;
+		if(client.call(srv))	{
+			ROS_INFO("Roll: %f", srv.response.roll);
+		}
+		else	{
+			ROS_ERROR("Failed to call service Calculate_orientation");
+		}
 
     	ROScount++;
 //		loop_rate.sleep();

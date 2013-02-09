@@ -60,6 +60,7 @@ int display_properties(CPhidgetHandle phid)
 	printf("Number of Gyro Axes: %i\n", numGyroAxes);
 	printf("Number of Compass Axes: %i\n", numCompassAxes);
 	printf("datarate> Max: %d  Min: %d\n", dataRateMax, dataRateMin);
+	return 0;
 }
 
 //callback that will run at datarate

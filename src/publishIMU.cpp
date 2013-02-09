@@ -56,17 +56,19 @@ int main(int argc, char* argv[]){
 
 	//ROS Setup
 	//-------------------------------
+	ROS_INFO("Initializing IMU talker");
   	int ROSbufferSize = 100, ROScount = 0;
-  	ros::Rate loop_rate(10);
  	ros::init(argc, argv, "Phidget_Stuff");
   	ros::NodeHandle PhidgetNode;
+  	ros::Rate loop_rate(10);
   	ros::Publisher PhidgetPub = 
     	PhidgetNode.advertise<IMU::spatialRaw>("IMU_data", ROSbufferSize);
-	ros::Publisher OrientationPub = PhidgetNode.advertise<IMU::orientation>("Orientation_data", ROSbufferSize);
-	ros::ServiceClient client = PhidgetNode.serviceClient<IMU::imu_filter>("Calculate_Orientation");
+	//ros::Publisher OrientationPub = PhidgetNode.advertise<IMU::orientation>("Orientation_data", ROSbufferSize);
+	//ros::ServiceClient client = PhidgetNode.serviceClient<IMU::imu_filter>("Calculate_Orientation");
 	
 	//Creating/Initializing Spatial Handle
 	//------------------------------------
+	ROS_INFO("Initializing Spatial handles");
 	CPhidgetSpatialHandle spatial =0;
 	CPhidgetSpatial_create(&spatial);
 
@@ -111,6 +113,7 @@ int main(int argc, char* argv[]){
 		PhidgetPub.publish(msg);
 	
 		//Publishing orientation data
+		/*
 		IMU::imu_filter srv;
 		srv.request.rawIMU = msg;
 		if(client.call(srv))	{
@@ -120,7 +123,7 @@ int main(int argc, char* argv[]){
 			ROS_ERROR("Failed to call service Calculate_orientation");
 		}
 		OrientationPub.publish(srv.response);
-
+	*/
     	ROScount++;
 //		loop_rate.sleep();
     	ros::spinOnce();

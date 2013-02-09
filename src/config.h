@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define DATA_RATE = 16;	//phidget pushes packets every 16 millisec
+#define DATA_RATE 16	//phidget pushes packets every 16 millisec
 
 /*SPATIAL_CONFIG_H*/
 #endif

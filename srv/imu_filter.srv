@@ -3,6 +3,5 @@ spatialRaw rawIMU
 ---
 #orientation estimate
 Header header
-float64 roll
-float64 pitch
-float64 yaw
+orientation orientation	#roll pitch yaw
+rotMatrix rot

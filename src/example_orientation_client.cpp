@@ -17,9 +17,8 @@ int main(int argc, char **argv)	{
 	srv.request.rawIMU.w_x = -.59418;
 	srv.request.rawIMU.w_x = .10736;
 
-	srv.response.roll = 42.5;
 	if(client.call(srv))	{
-		ROS_INFO("Roll: %f", srv.response.roll);
+		ROS_INFO("Roll: %f", srv.response.orientation.roll);
 	}	
 	else	{
 		ROS_ERROR("failed to call calculate_orientation");

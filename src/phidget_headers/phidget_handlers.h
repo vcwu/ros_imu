@@ -74,7 +74,7 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
 	CPhidgetSpatial_SpatialEventData* dataHolder = (CPhidgetSpatial_SpatialEventData*)malloc(sizeof(CPhidgetSpatial_SpatialEventData));
 
 	dataHolder = spatial::copy(*data[0]);
-//	spatial::print(*dataHolder);
+	spatial::print(*dataHolder);
 
 	//Pushing data to user given vector.
 	//---------------------
@@ -94,7 +94,7 @@ int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *userptr, CPhid
 	pthread_mutex_unlock(&mutex);
 
 	//Freeing up memory of dataholder
-	//free(dataHolder);
+	free(dataHolder);
 
 	return 0;
 }

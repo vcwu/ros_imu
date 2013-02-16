@@ -63,15 +63,21 @@ bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &res
 		response.rot.row2[i] = rotation[1][i];
 		response.rot.row3[i] = rotation[2][i];
 	}
-	//Artificially setting to (0,0,0) position for testing
-	response.pose.position.x = 0;
-	response.pose.position.y = 0;
-	response.pose.position.z = 0;
+	//Filling up pose header
+//	response.pose.header.seq = seqNum;
+	response.pose.header.stamp = raw.timestamp;
+	response.pose.header.frame_id = 1;
 
-	imuFilter.getOrientation(	response.pose.orientation.x,
-								response.pose.orientation.y,
-								response.pose.orientation.z,
-								response.pose.orientation.w);
+	//Artificially setting to (0,0,0) position for testing
+	response.pose.pose.position.x = 0;
+	response.pose.pose.position.y = 0;
+	response.pose.pose.position.z = 0;
+
+
+	imuFilter.getOrientation(	response.pose.pose.orientation.x,
+								response.pose.pose.orientation.y,
+								response.pose.pose.orientation.z,
+								response.pose.pose.orientation.w);
   return true;
 }
 

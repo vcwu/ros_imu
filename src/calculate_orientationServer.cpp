@@ -1,8 +1,9 @@
 /******************************************************************************
-* orientation SERVER
+* Calculate orientation SERVER
 * the orientation service takes raw IMU data and converts it to a useable
 *   odometry message
-*
+*	
+* IMU filter 
 * addtl notes: if you're going to be modifying this code, be sure to familarize 
 *   yourself with the constants defined in berkconfig.h
 *
@@ -15,7 +16,7 @@
 #include <IMU/imu_filter.h>
 //Our headers
 #include "orientation_headers/imuFilter.h"
-#include "berkconfig.h" //for error rates, other constants ->should include config.h
+#include "config.h" 
 
 /*
 bool callback(std_servs::Empty::Request&, std_srvs::Empty::Response& response)	{

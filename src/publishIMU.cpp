@@ -1,5 +1,7 @@
 //TODO
 //Handling spatial timeout
+//wait for service?
+//-> detaching phidget, then attaching? blocking?
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -7,6 +9,7 @@
 #include "phidget_headers/spatial_helper.h"
 #include <IMU/orientation.h>
 #include <IMU/imu_filter.h>
+#include <tf/transform_broadcaster.h>
 #include "config.h"
 extern pthread_mutex_t mutex; 	//used when handling data q
 extern pthread_cond_t cond;		//used when handling data  q
@@ -78,12 +81,15 @@ int main(int argc, char* argv[]){
     	PhidgetNode.advertise<IMU::spatialRaw>("IMU_data", ROSbufferSize);
 	ros::Publisher rpyPub = PhidgetNode.advertise<IMU::orientation>("RPY_data", ROSbufferSize);
 	ros::Publisher RotMatrixPub = PhidgetNode.advertise<IMU::rotMatrix>("Rotation_Matrix", ROSbufferSize);
-	ros::Publisher orientationPub = PhidgetNode.advertise<geometry_msgs::Pose>("Orientation_data", ROSbufferSize);
+	ros::Publisher orientationPub = PhidgetNode.advertise<geometry_msgs::PoseStamped>("Orientation_data", ROSbufferSize);
 	
 	ROS_INFO("Publishers Set up");
 
 	//Connecting to Service
 	ros::ServiceClient client = PhidgetNode.serviceClient<IMU::imu_filter>("Calculate_Orientation");
+
+	//Setting up transform broadcaster
+	tf::TransformBroadcaster broadcaster;
 	
 	//Creating/Initializing Spatial Handle
 	//------------------------------------
@@ -141,9 +147,28 @@ int main(int argc, char* argv[]){
 			ROS_INFO("Roll: %f", srv.response.orientation.roll);
 			ROS_INFO("pitch: %f", srv.response.orientation.pitch);
 			ROS_INFO("yaw: %f", srv.response.orientation.yaw);
+			
+			//Publishing data
 			rpyPub.publish(srv.response.orientation);
 			RotMatrixPub.publish(srv.response.rot);
 			orientationPub.publish(srv.response.pose);	
+			
+			//Broadcasting TF transform
+			//from ccny-ros-pkg/imu_tools repository
+			tf::Quaternion q(srv.response.pose.pose.orientation.x,
+							srv.response.pose.pose.orientation.y,
+							srv.response.pose.pose.orientation.z,
+							srv.response.pose.pose.orientation.w);
+			tf::Transform transform;
+			transform.setOrigin( tf::Vector3(0,0,0));
+			transform.setRotation(q);
+			broadcaster.sendTransform(
+				tf::StampedTransform(
+					transform, 
+					srv.response.pose.header.stamp,
+					"world",
+					 "IMU")
+				);
 		}
 		else	{
 			ROS_ERROR("Failed to call service Calculate_orientation");

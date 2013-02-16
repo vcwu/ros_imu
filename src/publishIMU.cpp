@@ -57,7 +57,7 @@ int main(int argc, char* argv[]){
 	//ROS Setup
 	//-------------------------------
 	ROS_INFO("Initializing IMU talker");
-  	int ROSbufferSize = 100, ROScount = 0;
+  	int ROSbufferSize = 10, ROScount = 0;
  	ros::init(argc, argv, "Phidget_Stuff");
   	ros::NodeHandle PhidgetNode;
   	ros::Rate loop_rate(10);
@@ -109,8 +109,8 @@ int main(int argc, char* argv[]){
 			
 		fillSpatialMsg(it, dataQueue, &msg);
 
-		ROS_INFO("Time %ds %dns", msg.timestamp.sec, msg.timestamp.nsec);
-		ROS_INFO("Gyr X:%f Y:%f Z:%f", msg.w_x, msg.w_y, msg.w_z);	
+	//	ROS_INFO("Time %ds %dns", msg.timestamp.sec, msg.timestamp.nsec);
+	//	ROS_INFO("Gyr X:%f Y:%f Z:%f", msg.w_x, msg.w_y, msg.w_z);	
 		PhidgetPub.publish(msg);
 	
 		//Publishing orientation data
@@ -119,6 +119,9 @@ int main(int argc, char* argv[]){
 		srv.request.rawIMU = msg;
 		if(client.call(srv))	{
 			ROS_INFO("Orientation_Calculate call successful.");
+			ROS_INFO("Roll: %f", srv.response.orientation.roll);
+			ROS_INFO("pitch: %f", srv.response.orientation.pitch);
+			ROS_INFO("yaw: %f", srv.response.orientation.yaw);
 			OrientationPub.publish(srv.response.orientation);
 			RotMatrixPub.publish(srv.response.rot);
 			

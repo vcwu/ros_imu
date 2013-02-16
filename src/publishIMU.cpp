@@ -1,3 +1,6 @@
+//TODO
+//Handling spatial timeout
+
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <IMU/spatialRaw.h>
@@ -15,20 +18,29 @@ void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, IMU::spatialRaw *msg)
 	msg->timestamp.sec = it->timestamp.seconds;
 	msg->timestamp.nsec = it->timestamp.microseconds;
 
-	//Copying Acceleration (in g's)
-	msg->a_x = it->acceleration[0];
-	msg->a_y = it->acceleration[1];
-	msg->a_z = it->acceleration[2];
+	//Convert Acceleration from g's -> m/s/s, then copy
+	msg->a_x = mss_from_gs(it->acceleration[0]);
+	msg->a_y = mss_from_gs(it->acceleration[1]);
+	msg->a_z = mss_from_gs(it->acceleration[2]);
 
-	//Copying Angular Rate (in deg/s)
-	msg->w_x = it->angularRate[0];
-	msg->w_y = it->angularRate[1];
-	msg->w_z = it->angularRate[2];
+	//Convert Angular rate from deg/s -> rad/s, then copy
+	msg->w_x = rad_from_deg(it->angularRate[0]);
+	msg->w_y = rad_from_deg(it->angularRate[1]);
+	msg->w_z = rad_from_deg(it->angularRate[2]);
 
 	//Copying Magnetic field (in gauss)
 	msg->m_x = it->magneticField[0];
 	msg->m_y = it->magneticField[1];
 	msg->m_z = it->magneticField[2];
+
+	ROS_INFO("ROS Side, Raw Phidget Data");
+	ROS_INFO("a_x: %f, a_y: %f, a_z: %f", it->acceleration[0],it->acceleration[1], it->acceleration[2]);
+	ROS_INFO("w_x: %f, w_y: %f, w_z: %f", it->angularRate[0],it->angularRate[1], it->angularRate[2]);
+
+	ROS_INFO("Copied Spatial Data");
+	ROS_INFO("a_x: %f, a_y: %f, a_z: %f", msg->a_x, msg->a_y, msg->a_z);
+	ROS_INFO("w_x: %f, w_y: %f, w_z: %f", msg->w_x, msg->w_y, msg->w_z);
+
 
 }
 
@@ -42,7 +54,6 @@ void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDa
 	if(dataQueue->empty())	{
 		pthread_cond_wait(&cond, &mutex);
 	}
-	ROS_INFO("Not empty!"); 
 	
 	it = dataQueue->begin();
 	copySpatialRaw(it, msg);
@@ -68,6 +79,8 @@ int main(int argc, char* argv[]){
 	ros::Publisher rpyPub = PhidgetNode.advertise<IMU::orientation>("RPY_data", ROSbufferSize);
 	ros::Publisher RotMatrixPub = PhidgetNode.advertise<IMU::rotMatrix>("Rotation_Matrix", ROSbufferSize);
 	ros::Publisher orientationPub = PhidgetNode.advertise<geometry_msgs::Pose>("Orientation_data", ROSbufferSize);
+	
+	ROS_INFO("Publishers Set up");
 
 	//Connecting to Service
 	ros::ServiceClient client = PhidgetNode.serviceClient<IMU::imu_filter>("Calculate_Orientation");
@@ -104,6 +117,7 @@ int main(int argc, char* argv[]){
 	
 	//set up spatial
 	//-------------------------------------
+	ROS_INFO("Setting up Spatial");
 	spatial::spatial_setup(spatial, dataQueue, DATA_RATE);
 
  	while(ros::ok()) {

@@ -18,27 +18,12 @@
 #include "orientation_headers/imuFilter.h"
 #include "config.h" 
 
-/*
-bool callback(std_servs::Empty::Request&, std_srvs::Empty::Response& response)	{
-	return true;
-}*/
-
-#ifdef BERKTESTER
-//BERKTESTER0 //includes needed for other BERKTESTSER code
-#endif
-
-
 IMUfilter imuFilter(seconds_from_ms(DATA_RATE), gyroscopeErrorRate);
 
 bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response);
 
 int main(int argc, char* argv[])
 {
-
-#ifdef BERKTESTER
-//BERKTESTER1 //define filestreams
-#endif //ifdef BERKTESTER
-
 	
 	ros::init(argc, argv, "Calculate_Orientation_server");
 	ros::NodeHandle berk;
@@ -77,10 +62,7 @@ bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &res
 		response.rot.row2[i] = rotation[1][i];
 		response.rot.row3[i] = rotation[2][i];
 	}
-#ifdef BERKTESTER
-//BERKTESTER2//print out any statements
-#endif
-	  return true;
+  return true;
 }
 
 

@@ -3,5 +3,6 @@ spatialRaw rawIMU
 ---
 #orientation estimate
 Header header
+geometry_msgs/Pose pose
 orientation orientation	#roll pitch yaw
 rotMatrix rot

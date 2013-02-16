@@ -105,10 +105,15 @@ public:
      */
     double getYaw(void);
  
+	/**
+	 * Get orientation in quaternion form.
+	 *
+	 */
+	void getOrientation(double& x, double& y, double& z, double& w);
 
     /**
      *Get rotation matrix.
-     *
+     *	(added)
      *@return The current rotation matrix.
      */
     void getRotationMatrix(double rot[3][3]);

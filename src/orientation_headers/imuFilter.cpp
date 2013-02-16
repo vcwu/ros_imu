@@ -72,7 +72,14 @@ IMUfilter::IMUfilter(double rate, double gyroscopeMeasurementError){
     }    
  
 }
- 
+
+void IMUfilter::getOrientation(double& x, double& y, double& z, double& w)	{
+	x = SEq_2;
+	y = SEq_3;
+	z = SEq_4;
+	w = SEq_1;
+}
+
 void IMUfilter::updateFilter(double w_x, double w_y, double w_z, double a_x, double a_y, double a_z) {
  
     //Local system variables.

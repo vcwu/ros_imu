@@ -61,10 +61,15 @@ int main(int argc, char* argv[]){
  	ros::init(argc, argv, "Phidget_Stuff");
   	ros::NodeHandle PhidgetNode;
   	ros::Rate loop_rate(10);
-  	ros::Publisher PhidgetPub = 
+
+  	//Setting up publishers
+	ros::Publisher PhidgetPub = 
     	PhidgetNode.advertise<IMU::spatialRaw>("IMU_data", ROSbufferSize);
-	ros::Publisher OrientationPub = PhidgetNode.advertise<IMU::orientation>("Orientation_data", ROSbufferSize);
+	ros::Publisher rpyPub = PhidgetNode.advertise<IMU::orientation>("RPY_data", ROSbufferSize);
 	ros::Publisher RotMatrixPub = PhidgetNode.advertise<IMU::rotMatrix>("Rotation_Matrix", ROSbufferSize);
+	ros::Publisher orientationPub = PhidgetNode.advertise<geometry_msgs::Pose>("Orientation_data", ROSbufferSize);
+
+	//Connecting to Service
 	ros::ServiceClient client = PhidgetNode.serviceClient<IMU::imu_filter>("Calculate_Orientation");
 	
 	//Creating/Initializing Spatial Handle
@@ -122,9 +127,9 @@ int main(int argc, char* argv[]){
 			ROS_INFO("Roll: %f", srv.response.orientation.roll);
 			ROS_INFO("pitch: %f", srv.response.orientation.pitch);
 			ROS_INFO("yaw: %f", srv.response.orientation.yaw);
-			OrientationPub.publish(srv.response.orientation);
+			rpyPub.publish(srv.response.orientation);
 			RotMatrixPub.publish(srv.response.rot);
-			
+			orientationPub.publish(srv.response.pose);	
 		}
 		else	{
 			ROS_ERROR("Failed to call service Calculate_orientation");

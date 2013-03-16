@@ -9,6 +9,11 @@
 #define deg_from_rad(X) ((X)* 57.2957795)
 #define seconds_from_ms(x) ((x)/1000.0)
 #define DATA_RATE 16	//phidget pushes packets every 16 millisec
-const double GYRO_OFFSET[3] = {-0.241803, 0.02563817, -0.3029};
+//BURRIS
+const double GYRO_OFFSET_B[3] = {-0.00494777, -0.00370861, -0.0013638};
+
+//ROBOTICS - tested on table, 10 min, in deg/s
+const double GYRO_OFFSET_R[3] = {-0.004615, -0.000150139, -0.00632318};
+
 /*SPATIAL_CONFIG_H*/
 #endif

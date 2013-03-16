@@ -6,7 +6,7 @@ using namespace std;
 
 void spatial::zeroGyro(CPhidgetSpatial_SpatialEventData& data){
 	for(int i =0; i< 3; i++)	{
-		data.angularRate[i] = data.angularRate[i] - GYRO_OFFSET[i];	
+		data.angularRate[i] = data.angularRate[i] - GYRO_OFFSET_R[i];	
 	}
 }
 

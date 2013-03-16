@@ -1,4 +1,5 @@
 //TODO
+//!!!! Bit of drift... 1-3 degrees in a minute, varies from yaw to pitch.
 //Handling spatial timeout
 //wait for service?
 //-> detaching phidget, then attaching? blocking?
@@ -15,7 +16,22 @@ extern pthread_mutex_t mutex; 	//used when handling data q
 extern pthread_cond_t cond;		//used when handling data  q
 using namespace std;
 
+/*
+ * Account for bias in gyro 
+ */
+void adjustBias(IMU::spatialRaw *msg)	{
+	msg->w_x = msg->w_x - GYRO_OFFSET_R[0]; 
+	msg->w_y = msg->w_y - GYRO_OFFSET_R[1]; 
+	msg->w_z = msg->w_z - GYRO_OFFSET_R[2]; 
+}
+
+/*
+ * copySpatialRaw
+ * Copies the given spatialraw message into the queue at specified position.
+ */
 void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, IMU::spatialRaw *msg)	{
+	//Subtract bias from gyro.
+	adjustBias(msg);
 
 	//Copying Timestamp
 	msg->timestamp.sec = it->timestamp.seconds;
@@ -36,6 +52,8 @@ void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, IMU::spatialRaw *msg)
 	msg->m_y = it->magneticField[1];
 	msg->m_z = it->magneticField[2];
 
+	adjustBias(msg);
+
 	ROS_INFO("ROS Side, Raw Phidget Data");
 	ROS_INFO("a_x: %f, a_y: %f, a_z: %f", it->acceleration[0],it->acceleration[1], it->acceleration[2]);
 	ROS_INFO("w_x: %f, w_y: %f, w_z: %f", it->angularRate[0],it->angularRate[1], it->angularRate[2]);
@@ -47,6 +65,9 @@ void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, IMU::spatialRaw *msg)
 
 }
 
+/*
+ * Gets a spatialraw message from the queue.
+ */
 void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDataQ* dataQueue, IMU::spatialRaw *msg)	{
 	ROS_INFO("Filling up msg");
 	//Dealing with data Queue
@@ -81,7 +102,7 @@ int main(int argc, char* argv[]){
     	PhidgetNode.advertise<IMU::spatialRaw>("IMU_data", ROSbufferSize);
 	ros::Publisher rpyPub = PhidgetNode.advertise<IMU::orientation>("RPY_data", ROSbufferSize);
 	ros::Publisher RotMatrixPub = PhidgetNode.advertise<IMU::rotMatrix>("Rotation_Matrix", ROSbufferSize);
-	ros::Publisher orientationPub = PhidgetNode.advertise<geometry_msgs::PoseStamped>("Orientation_data", ROSbufferSize);
+	ros::Publisher orientationPub = PhidgetNode.advertise<geometry_msgs::Quaternion>("Orientation_data", ROSbufferSize);
 	
 	ROS_INFO("Publishers Set up");
 
@@ -142,23 +163,25 @@ int main(int argc, char* argv[]){
 		
 		IMU::imu_filter srv;
 		srv.request.rawIMU = msg;
+		//Update filter with newest data.
 		if(client.call(srv))	{
 			ROS_INFO("Orientation_Calculate call successful.");
-			ROS_INFO("Roll: %f", srv.response.orientation.roll);
-			ROS_INFO("pitch: %f", srv.response.orientation.pitch);
-			ROS_INFO("yaw: %f", srv.response.orientation.yaw);
+			ROS_INFO("Roll: %f", srv.response.rpy.roll);
+			ROS_INFO("pitch: %f", srv.response.rpy.pitch);
+			ROS_INFO("yaw: %f", srv.response.rpy.yaw);
 			
 			//Publishing data
-			rpyPub.publish(srv.response.orientation);
+			rpyPub.publish(srv.response.rpy);
 			RotMatrixPub.publish(srv.response.rot);
-			orientationPub.publish(srv.response.pose);	
+			orientationPub.publish(srv.response.orientation);	
 			
 			//Broadcasting TF transform
 			//from ccny-ros-pkg/imu_tools repository
-			tf::Quaternion q(srv.response.pose.pose.orientation.x,
-							srv.response.pose.pose.orientation.y,
-							srv.response.pose.pose.orientation.z,
-							srv.response.pose.pose.orientation.w);
+	/*
+			tf::Quaternion q(srv.response.orientation.x,
+							srv.response.orientation.y,
+							srv.response.orientation.z,
+							srv.response.orientation.w);
 			tf::Transform transform;
 			transform.setOrigin( tf::Vector3(0,0,0));
 			transform.setRotation(q);
@@ -169,6 +192,7 @@ int main(int argc, char* argv[]){
 					"world",
 					 "IMU")
 				);
+				*/
 		}
 		else	{
 			ROS_ERROR("Failed to call service Calculate_orientation");

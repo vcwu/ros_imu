@@ -1,11 +1,8 @@
 /******************************************************************************
 * Calculate orientation SERVER
 * the orientation service takes raw IMU data and converts it to a useable
-*   odometry message
+*   orientation estimate using an imu filter.
 *	
-* IMU filter 
-* addtl notes: if you're going to be modifying this code, be sure to familarize 
-*   yourself with the constants defined in berkconfig.h
 *
 ******************************************************************************/
 
@@ -31,8 +28,8 @@ int main(int argc, char* argv[])
 	imuFilter.reset();
 	ros::ServiceServer service = berk.advertiseService("Calculate_Orientation", calculate );
 	ROS_INFO("Ready to calculate orientation.");
-	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", imuFilter.getRoll(),
-		imuFilter.getPitch(), imuFilter.getYaw());
+	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", deg_from_rad(imuFilter.getRoll()),
+		deg_from_rad(imuFilter.getPitch()), deg_from_rad(imuFilter.getYaw()));
 	ros::spin();
 	return 0;
 }
@@ -52,11 +49,11 @@ bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &res
 	imuFilter.computeEuler();
   	double rotation[3][3];
 
-	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", imuFilter.getRoll(),
-		imuFilter.getPitch(), imuFilter.getYaw());
-  	response.orientation.roll = deg_from_rad(imuFilter.getRoll());
-  	response.orientation.pitch  = deg_from_rad(imuFilter.getPitch());
-  	response.orientation.yaw = deg_from_rad(imuFilter.getYaw());
+	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", deg_from_rad(imuFilter.getRoll()),
+		deg_from_rad(imuFilter.getPitch()), deg_from_rad(imuFilter.getYaw()));
+  	response.rpy.roll = deg_from_rad(imuFilter.getRoll());
+  	response.rpy.pitch  = deg_from_rad(imuFilter.getPitch());
+  	response.rpy.yaw = deg_from_rad(imuFilter.getYaw());
 	imuFilter.getRotationMatrix(rotation);
 	for(int i =0; i<3; i++)	{
 		response.rot.row1[i] = rotation[0][i];
@@ -65,19 +62,19 @@ bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &res
 	}
 	//Filling up pose header
 //	response.pose.header.seq = seqNum;
-	response.pose.header.stamp = raw.timestamp;
-	response.pose.header.frame_id = 1;
+	//response.pose.header.stamp = raw.timestamp;
+	//response.pose.header.frame_id = 1;
 
 	//Artificially setting to (0,0,0) position for testing
-	response.pose.pose.position.x = 0;
-	response.pose.pose.position.y = 0;
-	response.pose.pose.position.z = 0;
+	//response.pose.pose.position.x = 0;
+	//response.pose.pose.position.y = 0;
+	//response.pose.pose.position.z = 0;
 
 
-	imuFilter.getOrientation(	response.pose.pose.orientation.x,
-								response.pose.pose.orientation.y,
-								response.pose.pose.orientation.z,
-								response.pose.pose.orientation.w);
+	imuFilter.getOrientation(	response.orientation.x,
+								response.orientation.y,
+								response.orientation.z,
+								response.orientation.w);
   return true;
 }
 

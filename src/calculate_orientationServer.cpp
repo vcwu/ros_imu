@@ -10,6 +10,7 @@
 //Message Types
 //#include <IMU/spatialRaw.h>
 //#include <IMU/orientation.h>
+#include <std_msgs/Bool.h>
 #include <IMU/imu_filter.h>
 //Our headers
 #include "orientation_headers/imuFilter.h"
@@ -17,7 +18,15 @@
 
 IMUfilter imuFilter(seconds_from_ms(DATA_RATE), gyroscopeErrorRate);
 
+//takes in IMU readings and plugs them into filter.
 bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response);
+
+//Callback - Listens for a RESET command on the imu_reset topic.
+void imu_reset_callback(std_msgs::Bool::Ptr resetIMU)	{
+	if(resetIMU)	{
+		imuFilter.reset();
+	}
+}
 
 int main(int argc, char* argv[])
 {
@@ -30,6 +39,10 @@ int main(int argc, char* argv[])
 	ROS_INFO("Ready to calculate orientation.");
 	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", deg_from_rad(imuFilter.getRoll()),
 		deg_from_rad(imuFilter.getPitch()), deg_from_rad(imuFilter.getYaw()));
+	
+	//Listening for reset messages
+	ros::Subscriber resetListen = berk.subscribe("imu_reset", 1, imu_reset_callback);
+	
 	ros::spin();
 	return 0;
 }

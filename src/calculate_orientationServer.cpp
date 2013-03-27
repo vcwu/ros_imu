@@ -8,16 +8,14 @@
 
 #include "ros/ros.h"
 //Message Types
-//#include <IMU/spatialRaw.h>
-//#include <IMU/orientation.h>
-#include <IMU/imu_filter.h>
+#include <ros_imu/imu_filter.h>
 //Our headers
 #include "orientation_headers/imuFilter.h"
 #include "config.h" 
 
 IMUfilter imuFilter(seconds_from_ms(DATA_RATE), gyroscopeErrorRate);
 
-bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response);
+bool calculate(ros_imu::imu_filter::Request &request, ros_imu::imu_filter::Response &response);
 
 int main(int argc, char* argv[])
 {
@@ -36,10 +34,10 @@ int main(int argc, char* argv[])
 
 
 
-bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response)
+bool calculate(ros_imu::imu_filter::Request &request, ros_imu::imu_filter::Response &response)
 {
 	//Update filter with IMU data
-	IMU::spatialRaw raw = request.rawIMU;
+	ros_imu::spatialRaw raw = request.rawIMU;
 	ROS_INFO("Server Side, Raw Phidget Data");
 	ROS_INFO("a_x: %f, a_y: %f, a_z:%f", raw.a_x, raw.a_y, raw.a_z);
 	ROS_INFO("w_x: %f, w_y: %f, w_z:%f", raw.w_x, raw.w_y, raw.w_z);

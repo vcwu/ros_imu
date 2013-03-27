@@ -6,10 +6,10 @@
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-#include <IMU/spatialRaw.h>
+#include <ros_imu/spatialRaw.h>
 #include "phidget_headers/spatial_helper.h"
-#include <IMU/orientation.h>
-#include <IMU/imu_filter.h>
+#include <ros_imu/orientation.h>
+#include <ros_imu/imu_filter.h>
 #include <tf/transform_broadcaster.h>
 #include "config.h"
 extern pthread_mutex_t mutex; 	//used when handling data q
@@ -19,7 +19,7 @@ using namespace std;
 /*
  * Account for bias in gyro 
  */
-void adjustBias(IMU::spatialRaw *msg)	{
+void adjustBias(ros_imu::spatialRaw *msg)	{
 	msg->w_x = msg->w_x - GYRO_OFFSET_R[0]; 
 	msg->w_y = msg->w_y - GYRO_OFFSET_R[1]; 
 	msg->w_z = msg->w_z - GYRO_OFFSET_R[2]; 
@@ -29,7 +29,7 @@ void adjustBias(IMU::spatialRaw *msg)	{
  * copySpatialRaw
  * Copies the given spatialraw message into the queue at specified position.
  */
-void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, IMU::spatialRaw *msg)	{
+void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, ros_imu::spatialRaw *msg)	{
 	//Subtract bias from gyro.
 	adjustBias(msg);
 
@@ -68,7 +68,7 @@ void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, IMU::spatialRaw *msg)
 /*
  * Gets a spatialraw message from the queue.
  */
-void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDataQ* dataQueue, IMU::spatialRaw *msg)	{
+void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDataQ* dataQueue, ros_imu::spatialRaw *msg)	{
 	ROS_INFO("Filling up msg");
 	//Dealing with data Queue
 	pthread_mutex_lock(&mutex);
@@ -99,15 +99,15 @@ int main(int argc, char* argv[]){
 
   	//Setting up publishers
 	ros::Publisher PhidgetPub = 
-    	PhidgetNode.advertise<IMU::spatialRaw>("IMU_data", ROSbufferSize);
-	ros::Publisher rpyPub = PhidgetNode.advertise<IMU::orientation>("RPY_data", ROSbufferSize);
-	ros::Publisher RotMatrixPub = PhidgetNode.advertise<IMU::rotMatrix>("Rotation_Matrix", ROSbufferSize);
+    	PhidgetNode.advertise<ros_imu::spatialRaw>("IMU_data", ROSbufferSize);
+	ros::Publisher rpyPub = PhidgetNode.advertise<ros_imu::orientation>("RPY_data", ROSbufferSize);
+	ros::Publisher RotMatrixPub = PhidgetNode.advertise<ros_imu::rotMatrix>("Rotation_Matrix", ROSbufferSize);
 	ros::Publisher orientationPub = PhidgetNode.advertise<geometry_msgs::Quaternion>("Orientation_data", ROSbufferSize);
 	
 	ROS_INFO("Publishers Set up");
 
 	//Connecting to Service
-	ros::ServiceClient client = PhidgetNode.serviceClient<IMU::imu_filter>("Calculate_Orientation");
+	ros::ServiceClient client = PhidgetNode.serviceClient<ros_imu::imu_filter>("Calculate_Orientation");
 
 	//Setting up transform broadcaster
 	tf::TransformBroadcaster broadcaster;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]){
 		
 
 		//Publishing raw IMU data
-		IMU::spatialRaw  msg;
+		ros_imu::spatialRaw  msg;
 			
 		fillSpatialMsg(it, dataQueue, &msg);
 
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]){
 	
 		//Publishing orientation data
 		
-		IMU::imu_filter srv;
+		ros_imu::imu_filter srv;
 		srv.request.rawIMU = msg;
 		//Update filter with newest data.
 		if(client.call(srv))	{

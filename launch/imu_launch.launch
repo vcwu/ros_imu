@@ -1,0 +1,8 @@
+<launch>
+	<node 	pkg="ros_imu" type="orientationServer"
+			name="IMU_SRV"
+			args="--quiet" />
+	<node 	pkg="ros_imu" type="rawIMUPublisher"
+			name="IMU_PUB"
+			args="--quiet" />
+</launch>

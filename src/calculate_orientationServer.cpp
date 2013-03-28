@@ -11,7 +11,7 @@
 //#include <IMU/spatialRaw.h>
 //#include <IMU/orientation.h>
 #include <std_msgs/Bool.h>
-#include <IMU/imu_filter.h>
+#include <ros_imu/imu_filter.h>
 //Our headers
 #include "orientation_headers/imuFilter.h"
 #include "config.h" 
@@ -19,7 +19,10 @@
 IMUfilter imuFilter(seconds_from_ms(DATA_RATE), gyroscopeErrorRate);
 
 //takes in IMU readings and plugs them into filter.
-bool calculate(IMU::imu_filter::Request &request, IMU::imu_filter::Response &response);
+bool calculate(ros_imu::imu_filter::Request &request, ros_imu::imu_filter::Response &response);
+bool tacit = false;		// for the --quiet flag. defaults to false to display calculated values
+
+#define VERBOSE if (!tacit)
 
 //Callback - Listens for a RESET command on the imu_reset topic.
 void imu_reset_callback(std_msgs::Bool::Ptr resetIMU)	{
@@ -30,14 +33,20 @@ void imu_reset_callback(std_msgs::Bool::Ptr resetIMU)	{
 
 int main(int argc, char* argv[])
 {
+	if (argc == 2) {
+		if (strcmp(argv[1], "--quiet") == 0) {
+			tacit = true;
+			ROS_INFO("shhhh... be vewy, vewy, quiet.");
+		}
+	}
 	
 	ros::init(argc, argv, "Calculate_Orientation_server");
 	ros::NodeHandle berk;
 	
 	imuFilter.reset();
 	ros::ServiceServer service = berk.advertiseService("Calculate_Orientation", calculate );
-	ROS_INFO("Ready to calculate orientation.");
-	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", deg_from_rad(imuFilter.getRoll()),
+	VERBOSE ROS_INFO("Ready to calculate orientation.");
+	VERBOSE ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", deg_from_rad(imuFilter.getRoll()),
 		deg_from_rad(imuFilter.getPitch()), deg_from_rad(imuFilter.getYaw()));
 	
 	//Listening for reset messages
@@ -53,16 +62,16 @@ bool calculate(ros_imu::imu_filter::Request &request, ros_imu::imu_filter::Respo
 {
 	//Update filter with IMU data
 	ros_imu::spatialRaw raw = request.rawIMU;
-	ROS_INFO("Server Side, Raw Phidget Data");
-	ROS_INFO("a_x: %f, a_y: %f, a_z:%f", raw.a_x, raw.a_y, raw.a_z);
-	ROS_INFO("w_x: %f, w_y: %f, w_z:%f", raw.w_x, raw.w_y, raw.w_z);
+	VERBOSE ROS_INFO("Server Side, Raw Phidget Data");
+	VERBOSE ROS_INFO("a_x: %f, a_y: %f, a_z:%f", raw.a_x, raw.a_y, raw.a_z);
+	VERBOSE ROS_INFO("w_x: %f, w_y: %f, w_z:%f", raw.w_x, raw.w_y, raw.w_z);
 	
 	imuFilter.updateFilter(raw.w_x, raw.w_y, raw.w_z,
 		raw.a_x, raw.a_y, raw.a_z);
 	imuFilter.computeEuler();
   	double rotation[3][3];
 
-	ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", deg_from_rad(imuFilter.getRoll()),
+	VERBOSE ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", deg_from_rad(imuFilter.getRoll()),
 		deg_from_rad(imuFilter.getPitch()), deg_from_rad(imuFilter.getYaw()));
   	response.rpy.roll = deg_from_rad(imuFilter.getRoll());
   	response.rpy.pitch  = deg_from_rad(imuFilter.getPitch());

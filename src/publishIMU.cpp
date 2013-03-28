@@ -16,6 +16,9 @@ extern pthread_mutex_t mutex; 	//used when handling data q
 extern pthread_cond_t cond;		//used when handling data  q
 using namespace std;
 
+bool tacit = false;		// for --quiet flag. defaults to false to display calculated values
+
+#define VERBOSE if (!tacit)
 /*
  * Account for bias in gyro 
  */
@@ -54,13 +57,13 @@ void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, ros_imu::spatialRaw *
 
 	adjustBias(msg);
 
-	ROS_INFO("ROS Side, Raw Phidget Data");
-	ROS_INFO("a_x: %f, a_y: %f, a_z: %f", it->acceleration[0],it->acceleration[1], it->acceleration[2]);
-	ROS_INFO("w_x: %f, w_y: %f, w_z: %f", it->angularRate[0],it->angularRate[1], it->angularRate[2]);
+	VERBOSE ROS_INFO("ROS Side, Raw Phidget Data");
+	VERBOSE ROS_INFO("a_x: %f, a_y: %f, a_z: %f", it->acceleration[0],it->acceleration[1], it->acceleration[2]);
+	VERBOSE ROS_INFO("w_x: %f, w_y: %f, w_z: %f", it->angularRate[0],it->angularRate[1], it->angularRate[2]);
 
-	ROS_INFO("Copied Spatial Data");
-	ROS_INFO("a_x: %f, a_y: %f, a_z: %f", msg->a_x, msg->a_y, msg->a_z);
-	ROS_INFO("w_x: %f, w_y: %f, w_z: %f", msg->w_x, msg->w_y, msg->w_z);
+	VERBOSE ROS_INFO("Copied Spatial Data");
+	VERBOSE ROS_INFO("a_x: %f, a_y: %f, a_z: %f", msg->a_x, msg->a_y, msg->a_z);
+	VERBOSE ROS_INFO("w_x: %f, w_y: %f, w_z: %f", msg->w_x, msg->w_y, msg->w_z);
 
 
 }
@@ -69,7 +72,7 @@ void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, ros_imu::spatialRaw *
  * Gets a spatialraw message from the queue.
  */
 void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDataQ* dataQueue, ros_imu::spatialRaw *msg)	{
-	ROS_INFO("Filling up msg");
+	VERBOSE ROS_INFO("Filling up msg");
 	//Dealing with data Queue
 	pthread_mutex_lock(&mutex);
 
@@ -88,6 +91,12 @@ void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDa
 }
 
 int main(int argc, char* argv[]){
+	if (argc == 2) {
+		if (strcmp(argv[1], "--quiet") == 0) {
+			tacit = true;
+			ROS_INFO("caterpillar mode engaged; we are go for silent running");
+		}
+	}
 
 	//ROS Setup
 	//-------------------------------
@@ -126,7 +135,7 @@ int main(int argc, char* argv[]){
 	//init mutex
 	//-------------------------------------
 	if(pthread_mutex_init(&mutex, NULL)!= 0)	{
-		ROS_INFO("mutex init failed");
+		ROS_ERROR("mutex init failed");
 		return -1;	//erm this is bad
 	}
 	else	{
@@ -136,7 +145,7 @@ int main(int argc, char* argv[]){
 	//init cond
 	//-----------------------------------
 	if(pthread_cond_init(&cond, NULL)!=0)	{
-		ROS_INFO("cond init failed!");
+		ROS_ERROR("cond init failed!");
 	}
 	else	{
 		ROS_INFO("cond init success \n");
@@ -165,10 +174,10 @@ int main(int argc, char* argv[]){
 		srv.request.rawIMU = msg;
 		//Update filter with newest data.
 		if(client.call(srv))	{
-			ROS_INFO("Orientation_Calculate call successful.");
-			ROS_INFO("Roll: %f", srv.response.rpy.roll);
-			ROS_INFO("pitch: %f", srv.response.rpy.pitch);
-			ROS_INFO("yaw: %f", srv.response.rpy.yaw);
+			VERBOSE ROS_INFO("Orientation_Calculate call successful.");
+			VERBOSE ROS_INFO("Roll: %f", srv.response.rpy.roll);
+			VERBOSE ROS_INFO("pitch: %f", srv.response.rpy.pitch);
+			VERBOSE ROS_INFO("yaw: %f", srv.response.rpy.yaw);
 			
 			//Publishing data
 			rpyPub.publish(srv.response.rpy);

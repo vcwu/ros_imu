@@ -17,16 +17,24 @@ extern pthread_cond_t cond;		//used when handling data  q
 using namespace std;
 
 bool tacit = false;		// for --quiet flag. defaults to false to display calculated values
+double GYRO_BIAS[3];	
+
 
 #define VERBOSE if (!tacit)
 /*
  * Account for bias in gyro 
  */
 void adjustBias(ros_imu::spatialRaw *msg)	{
+/*
 	msg->w_x = msg->w_x - GYRO_OFFSET_R[0]; 
 	msg->w_y = msg->w_y - GYRO_OFFSET_R[1]; 
 	msg->w_z = msg->w_z - GYRO_OFFSET_R[2]; 
+*/
+	msg->w_x = msg->w_x - GYRO_BIAS[0]; 
+	msg->w_y = msg->w_y - GYRO_BIAS[1]; 
+	msg->w_z = msg->w_z - GYRO_BIAS[2]; 
 }
+
 
 /*
  * copySpatialRaw
@@ -34,7 +42,8 @@ void adjustBias(ros_imu::spatialRaw *msg)	{
  */
 void copySpatialRaw(spatial::PhidgetRawDataQ::iterator it, ros_imu::spatialRaw *msg)	{
 	//Subtract bias from gyro.
-	adjustBias(msg);
+	//I'm REALLY not sure why there's two of these calls. O.o
+	//adjustBias(msg);
 
 	//Copying Timestamp
 	msg->timestamp.sec = it->timestamp.seconds;
@@ -106,7 +115,15 @@ int main(int argc, char* argv[]){
   	ros::NodeHandle PhidgetNode;
   	ros::Rate loop_rate(10);
 
-  	//Setting up publishers
+  	//Getting bias params
+//	double gyro_x_bias, gyro_y_bias, gyro_z_bias;
+	PhidgetNode.param<double>("gyro_x_bias", GYRO_BIAS[0], -0.00494777);
+	PhidgetNode.param<double>("gyro_y_bias", GYRO_BIAS[1], -0.00370861);
+	PhidgetNode.param<double>("gyro_z_bias", GYRO_BIAS[2], -0.0013638);
+
+	ROS_INFO("Gyro X Bias - checking %f", GYRO_BIAS[0]);
+
+	//Setting up publishers
 	ros::Publisher PhidgetPub = 
     	PhidgetNode.advertise<ros_imu::spatialRaw>("IMU_data", ROSbufferSize);
 	ros::Publisher rpyPub = PhidgetNode.advertise<ros_imu::orientation>("RPY_data", ROSbufferSize);

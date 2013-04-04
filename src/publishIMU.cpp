@@ -100,7 +100,7 @@ void fillSpatialMsg(spatial::PhidgetRawDataQ::iterator it, spatial::PhidgetRawDa
 }
 
 int main(int argc, char* argv[]){
-	if (argc == 2) {
+	if (argc == 4) {	// change this to 2 if running from rosrun, 4 if from launch file
 		if (strcmp(argv[1], "--quiet") == 0) {
 			tacit = true;
 			ROS_INFO("caterpillar mode engaged; we are go for silent running");

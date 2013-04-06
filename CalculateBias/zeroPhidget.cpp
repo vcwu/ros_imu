@@ -20,7 +20,7 @@ int main()	{
 
 	double gyroSum[3] = {0,0,0};
 	double gyroOffset[3] = {0,0,0};
-	int events = 10000;
+	int events = 20000;
 
 	//Creating/Initializing Spatial Handle
 	//-----------------------------------
@@ -62,12 +62,14 @@ int main()	{
 		pthread_mutex_unlock(&mutex);
 
 		if(i%100 ==0)	cout << "event: " << i << endl;
-
+		
 		for(int i =0; i < 3; i++)	{
-			gyroSum[i]= gyroSum[i] + newest->angularRate[i];
+			if( newest->angularRate[i] < 1) 
+				gyroSum[i]= gyroSum[i] + newest->angularRate[i];
 		}
 		for(int i =0; i< 3; i++)	{
-			accSum[i] = accSum[i] + newest->acceleration[i];
+			if( newest->acceleration[i] < 1) 
+				accSum[i] = accSum[i] + newest->acceleration[i];
 		}
 		
 	}
@@ -77,7 +79,7 @@ int main()	{
 	//-----------------------------------
 	cout << "Writing to phidgetOffset.txt" <<endl;
 	fstream fout;
-	fout.open("phidgetOffset.txt", fstream::out);
+	fout.open("phidgetOffset.txt deg/s", fstream::out);
 	for(int i =0; i< 3; i++)	{
 		gyroOffset[i] = gyroSum[i]/events;
 		cout << "Gyro Offset axis " << i << ": " << gyroOffset[i] << endl;

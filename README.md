@@ -9,3 +9,5 @@ Rostopics
 
 Publishes orientation.msg for roll, pitch, yaw
 
+-> You will need to download the phidget21 libraries. 
+

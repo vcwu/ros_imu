@@ -7,5 +7,5 @@ Rostopics
 =======
 /Orientation_data
 
-Publishes orientation.msg for <roll, pitch, yaw>
+Publishes orientation.msg for roll, pitch, yaw
 

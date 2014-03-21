@@ -12,6 +12,7 @@
 #include <ros_imu/imu_filter.h>
 #include <tf/transform_broadcaster.h>
 #include "config.h"
+#include <ros/console.h>
 extern pthread_mutex_t mutex; 	//used when handling data q
 extern pthread_cond_t cond;		//used when handling data  q
 using namespace std;
